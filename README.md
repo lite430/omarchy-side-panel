@@ -17,6 +17,7 @@ An auto-hiding side dock for Omarchy, with support for multiple monitors.
 - Automatically restores live tray items after Shell restarts, including Catlink's remote WeChat tray.
 - WeChat uses a rounded outline and uppercase W matching the other icons' strokes; other ordinary tray icons use gray rounded tiles with uppercase initials, preserving the custom LazyCat and FlClash artwork. Blinking becomes a dot that follows the theme accent and clears when attention ends or the icon is clicked.
 - Includes power, recording, idle, notification and Shell restart controls.
+- The first button opens a menu with lock, shutdown, logout and reboot actions.
 
 ## Install
 

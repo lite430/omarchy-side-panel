@@ -61,6 +61,7 @@ Item {
             Repeater {
                 id: buttons
                 model: [
+                    {label: "锁屏", command: "lock"},
                     {label: "关机", command: "shutdown"},
                     {label: "注销", command: "logout"},
                     {label: "重启", command: "reboot"}
@@ -90,7 +91,7 @@ Item {
                     }
                     Timer {
                         id: delay
-                        interval: (menu.fromRight ? 2 - choice.index : choice.index) * 45
+                        interval: (menu.fromRight ? buttons.count - 1 - choice.index : choice.index) * 45
                         onTriggered: enter.start()
                     }
                     NumberAnimation {

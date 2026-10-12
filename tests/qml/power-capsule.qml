@@ -7,6 +7,7 @@ import "Ui" as PanelUi
 ShellRoot {
     id: root
     property var commands: []
+    readonly property var actions: ["lock", "shutdown", "logout", "reboot"]
     function check(value, message) { if (!value) throw new Error(message); }
     Window {
         width: menu.implicitWidth + 40; height: menu.implicitHeight + 40; visible: true; color: "#101010"
@@ -42,7 +43,9 @@ ShellRoot {
         menu.opened = true;
         input.wait(40);
         var states = menu.snapshot().buttons;
-        check(fromRight ? states[2].entrance > states[0].entrance : states[0].entrance > states[2].entrance,
+        check(states.map(function(item) { return item.command; }).join() === actions.join(), "Wrong menu actions");
+        var last = states.length - 1;
+        check(fromRight ? states[last].entrance > states[0].entrance : states[0].entrance > states[last].entrance,
               "Entry did not start next to the dock");
         input.wait(400);
         check(menu.reveal === 1 && menu.snapshot().buttons.every(function(item) { return item.entrance === 1; }),
@@ -72,8 +75,8 @@ ShellRoot {
                 check(menu.reveal === 0, "Menu did not finish closing");
 
                 for (var side = 0; side < 2; side++) {
-                    for (var j = 0; j < 3; j++) {
-                        var command = ["shutdown", "logout", "reboot"][j];
+                    for (var j = 0; j < actions.length; j++) {
+                        var command = actions[j];
                         open(side === 1);
                         if (side === 1 && j === 0) capture("right");
                         input.mouseClick(button(command), 38, 28);
@@ -89,7 +92,7 @@ ShellRoot {
                 check(menu.snapshot().buttons.every(function(item) { return item.entrance === 1; }),
                       "Rapid reopening left a stale entry timer");
                 menu.opened = false; input.wait(200);
-                check(commands.length === 7 && menu.reveal === 0, "Extra power action or unfinished fade");
+                check(commands.length === 1 + actions.length * 2 && menu.reveal === 0, "Extra power action or unfinished fade");
                 console.log("CAPSULE_PASS", JSON.stringify(commands));
             } catch (error) { console.log("CAPSULE_FAIL", String(error), JSON.stringify(menu.snapshot())); }
             Qt.quit();
