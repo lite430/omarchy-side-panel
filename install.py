@@ -191,6 +191,7 @@ def main():
             for name in FILES:
                 shutil.copy2(SOURCE / name, stage / name)
             shutil.copytree(SOURCE / "Ui", stage / "Ui")
+            shutil.copytree(SOURCE / "CompatUi", stage / "CompatUi")
             shutil.copytree(SOURCE / "Icons", stage / "Icons")
             shutil.copytree(SOURCE / "licenses", stage / "licenses")
             cache_home = Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache")))

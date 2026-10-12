@@ -1,6 +1,7 @@
+import "../CompatUi" as ThemeUi
 import QtQuick
 import QtQuick.Effects
-import qs.Commons
+import qs.Commons as Commons
 import qs.Ui as ShellUi
 
 Item {
@@ -57,7 +58,7 @@ Item {
         Row {
             id: actionRow
             anchors.centerIn: parent
-            spacing: Style.spacing.controlGap
+            spacing: Commons.Style.spacing.controlGap
             Repeater {
                 id: buttons
                 model: [
@@ -122,9 +123,9 @@ Item {
                             ShellUi.BorderSurface {
                                 anchors.fill: parent
                                 radius: PopupAppearance.radius
-                                color: choice.pressed ? Style.pressedFillFor(menu.foreground, Color.accent)
-                                    : choice.hovered ? Style.hoverFillFor(menu.foreground, Color.accent) : "transparent"
-                                borderSpec: choice.hovered ? Border.controlSpec("hover-cursor", menu.foreground, Color.accent) : Border.none()
+                                color: choice.pressed ? Commons.Style.pressedFillFor(menu.foreground, Commons.Color.accent)
+                                    : choice.hovered ? Commons.Style.hoverFillFor(menu.foreground, Commons.Color.accent) : "transparent"
+                                borderSpec: choice.hovered ? ThemeUi.ThemeBorder.controlSpec("hover-cursor", menu.foreground, Commons.Color.accent) : ThemeUi.ThemeBorder.none()
                                 Behavior on color { ColorAnimation { duration: 150 } }
                             }
                             Image {

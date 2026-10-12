@@ -22,6 +22,7 @@ def main():
     for label, ui in cases:
         with tempfile.TemporaryDirectory(prefix="side-panel-lifecycle-") as directory:
             root = Path(directory)
+            shutil.copytree(Path(__file__).resolve().parents[1] / "CompatUi", root / "Plugin/CompatUi")
             (root / "Commons").symlink_to(omarchy / "shell/Commons", target_is_directory=True)
             (root / "Ui").symlink_to(omarchy / "shell/Ui", target_is_directory=True)
             shutil.copytree(source / "Ui", root / "Plugin/Ui")

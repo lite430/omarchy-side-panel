@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import qs.Commons
+import qs.Commons as Commons
 
 QtObject {
     id: appearance
@@ -12,10 +12,10 @@ QtObject {
     readonly property int horizontalGap: 10
     readonly property int verticalPadding: 9
     readonly property int fontSize: 12
-    readonly property string fontFamily: Style.font.family
-    readonly property color background: Color.tooltip.background
-    readonly property color foreground: Color.tooltip.text
-    readonly property color borderColor: Color.tooltip.border
+    readonly property string fontFamily: Commons.Style.font.family
+    readonly property color background: Commons.Color.tooltip.background
+    readonly property color foreground: Commons.Color.tooltip.text
+    readonly property color borderColor: Commons.Color.tooltip.border
     property bool enabled: false
     property var stylers: []
     function registerStyler(styler) { stylers = stylers.concat([styler]); }

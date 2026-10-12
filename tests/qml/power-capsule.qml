@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import QtTest
 import Quickshell
+import qs.Commons as Commons
 import "Ui" as PanelUi
 
 ShellRoot {
@@ -55,6 +56,14 @@ ShellRoot {
         interval: 200; running: true
         onTriggered: {
             try {
+                check(PanelUi.PopupAppearance.foreground === Commons.Color.tooltip.text,
+                      "Tooltip foreground differs from the Omarchy theme");
+                check(PanelUi.PopupAppearance.background === Commons.Color.tooltip.background,
+                      "Tooltip background differs from the Omarchy theme");
+                Commons.Color.foreground = "#eeeeee";
+                input.tryVerify(function() { return PanelUi.PopupAppearance.foreground === Commons.Color.tooltip.text; }, 1000);
+                check(PanelUi.PopupAppearance.foreground === Commons.Color.tooltip.text,
+                      "Tooltip foreground did not follow a theme change");
                 input.mouseClick(button("shutdown"), 38, 28);
                 check(commands.length === 0, "Closed menu triggered an action");
                 open(false);

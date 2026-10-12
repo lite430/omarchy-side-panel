@@ -1,6 +1,7 @@
+import "../CompatUi" as ThemeUi
 import QtQuick
 import Quickshell
-import qs.Commons
+import qs.Commons as Commons
 
 // Style the popup instances rendered by this bar. Binding restores the
 // original plugin bindings when the replacement bar is disabled or unloaded.
@@ -61,7 +62,7 @@ Item {
         bind(card, "radius", function() { return PopupAppearance.radius; });
         bind(card, "color", function() { return PopupAppearance.background; });
         if ("borderSpec" in card) {
-            bind(card, "borderSpec", function() { return Border.flat(PopupAppearance.borderColor, PopupAppearance.borderWidth); });
+            bind(card, "borderSpec", function() { return ThemeUi.ThemeBorder.flat(PopupAppearance.borderColor, PopupAppearance.borderWidth); });
             bind(card, "topPadding", function() { return PopupAppearance.verticalPadding - PopupAppearance.borderWidth; });
             bind(card, "bottomPadding", function() { return PopupAppearance.verticalPadding - PopupAppearance.borderWidth; });
             bind(card, "leftPadding", function() { return PopupAppearance.horizontalPadding - PopupAppearance.borderWidth; });
@@ -118,7 +119,7 @@ Item {
             if ("font" in item && "text" in item && !isGlyph(item.text)) {
                 bind(item, "font.family", function() { return PopupAppearance.fontFamily; });
                 bind(item, "font.pixelSize", function() { return PopupAppearance.fontSize; });
-                if ("color" in item && !Border.sameColor(item.color, Color.urgent))
+                if ("color" in item && !ThemeUi.ThemeBorder.sameColor(item.color, Commons.Color.urgent))
                     bind(item, "color", function() { return PopupAppearance.foreground; });
             }
             if (item !== card && "radius" in item && "color" in item) {

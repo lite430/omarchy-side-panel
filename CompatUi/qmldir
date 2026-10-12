@@ -1,0 +1,6 @@
+singleton ThemeBorder 1.0 ThemeBorder.qml
+BarIconButton 1.0 BarIconButton.qml
+Button 1.0 Button.qml
+OpticalGlyph 1.0 OpticalGlyph.qml
+PopupCard 1.0 PopupCard.qml
+WidgetButton 1.0 WidgetButton.qml

@@ -107,6 +107,7 @@ def session():
         popup.write_text(popup.read_text().replace('active: root.open && root.triggerMode === "click"', 'active: false'))
         plugin = root / "Plugin"
         plugin.mkdir()
+        shutil.copytree(Path(__file__).resolve().parents[1] / "CompatUi", plugin / "CompatUi")
         for path in (*SOURCE.glob("*.qml"), *SOURCE.glob("*.js")):
             shutil.copy2(path, plugin / path.name)
         for name in ("Ui", "Icons"):

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import Quickshell
-import qs.Commons
+import qs.Commons as Commons
 import "SidePanelModel.js" as Model
 import "Ui" as PanelUi
 
@@ -33,8 +33,8 @@ Item {
     // Decode SVGs above display resolution, including the hover enlargement.
     layer.enabled: naturalHeight > 0
     layer.textureSize: host.options.pixelated
-        ? Qt.size(Math.max(1, Math.round(width * host.options.iconPixels / Style.bar.iconCanvas)),
-            Math.max(1, Math.round(height * host.options.iconPixels / Style.bar.iconCanvas)))
+        ? Qt.size(Math.max(1, Math.round(width * host.options.iconPixels / Commons.Style.bar.iconCanvas)),
+            Math.max(1, Math.round(height * host.options.iconPixels / Commons.Style.bar.iconCanvas)))
         : Qt.size(Math.ceil(width * Screen.devicePixelRatio * 4), Math.ceil(height * Screen.devicePixelRatio * 4))
     layer.smooth: !host.options.pixelated
     layer.mipmap: false
@@ -45,7 +45,7 @@ Item {
         sourceItem: root.expandedTray ? null : root.activeItem
         // A tray contains several icons; its rasterizer normalizes each one.
         normalize: !root.internalTray
-        targetSize: Style.bar.iconCanvas
+        targetSize: Commons.Style.bar.iconCanvas
     }
     readonly property var iconRasterizer: PanelUi.IconRasterizer {
         parent: root

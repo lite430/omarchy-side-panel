@@ -1,18 +1,19 @@
+import "CompatUi" as ThemeUi
 import QtQuick
 import QtQuick.Window
-import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Ui" as PanelUi
 
-BarIconButton {
+ThemeUi.BarIconButton {
     id: root
     required property var host
     required property string action
     bar: host
     fixedWidth: host.barSize
-    fixedHeight: Style.bar.iconSlot
-    opticalSize: Style.bar.iconCanvas
-    fontSize: Style.bar.iconFont
+    fixedHeight: Commons.Style.bar.iconSlot
+    opticalSize: Commons.Style.bar.iconCanvas
+    fontSize: Commons.Style.bar.iconFont
     fontFamily: action === "power" ? "omarchy" : host.fontFamily
     layer.enabled: true
     layer.textureSize: host.options.pixelated

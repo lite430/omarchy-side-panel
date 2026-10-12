@@ -1,8 +1,9 @@
+import "CompatUi" as ThemeUi
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
-import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "SidePanelModel.js" as Model
 import "UsageModel.js" as Usage
@@ -26,13 +27,13 @@ Item {
         return hovered ? hovered.dockSide : "left";
     }
     readonly property bool vertical: true
-    readonly property int barSize: Style.bar.sizeVertical
+    readonly property int barSize: Commons.Style.bar.sizeVertical
     readonly property bool transparent: false
-    readonly property string fontFamily: Style.font.family
-    readonly property color foreground: Color.bar.text
+    readonly property string fontFamily: Commons.Style.font.family
+    readonly property color foreground: Commons.Color.bar.text
     readonly property color barForeground: foreground
-    readonly property color background: Color.bar.background
-    readonly property color urgent: Color.bar.active
+    readonly property color background: Commons.Color.bar.background
+    readonly property color urgent: Commons.Color.bar.active
     readonly property bool foregroundAnimationEnabled: true
     readonly property bool centerSectionRevealHeld: true
     property bool centerHoverRevealSuppressed: false
@@ -79,7 +80,7 @@ Item {
     }
 
     function run(command) { Quickshell.execDetached(["bash", "-c", String(command)]); }
-    function shellQuote(value) { return Util.shellQuote(value); }
+    function shellQuote(value) { return Commons.Util.shellQuote(value); }
     function setCenterHoverRevealSuppressed(value) { centerHoverRevealSuppressed = !!value; }
     function registerClickTarget(target) {
         if (clickTargets.indexOf(target) === -1) clickTargets = clickTargets.concat([target]);
@@ -291,6 +292,7 @@ Item {
         target: "andy.side-panel"
         function status(): string {
             return JSON.stringify({id: "andy.side-panel", position: root.position, recording: root.recording,
+                palette: {foreground: String(root.foreground), background: String(root.background), urgent: String(root.urgent)},
                 stayAwake: root.stayAwake, doNotDisturb: root.doNotDisturb,
                 pixelated: root.options.pixelated, iconPixels: root.options.iconPixels,
                 usage: iconUsage.snapshot(),

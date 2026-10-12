@@ -15,6 +15,7 @@ def main():
     source = Path(__file__).resolve().parents[1]
     with tempfile.TemporaryDirectory(prefix="side-panel-power-") as directory:
         root = Path(directory)
+        shutil.copytree(Path(__file__).resolve().parents[1] / "CompatUi", root / "Plugin/CompatUi")
         (root / "Plugin/Ui").mkdir(parents=True)
         for name in ("PowerCapsule.qml", "PopupAppearance.qml", "qmldir"):
             shutil.copy2(source / "Ui" / name, root / "Plugin/Ui" / name)

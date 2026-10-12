@@ -1,8 +1,9 @@
+import "CompatUi" as ThemeUi
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
-import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "SidePanelModel.js" as Model
 import "UsageModel.js" as Usage
@@ -20,7 +21,7 @@ PanelWindow {
     readonly property string pendingSide: host.dockCoordinator.candidate === surface ? host.dockCoordinator.candidateSide : ""
     property bool revealed: false
     property real pointerY: -10000
-    readonly property real baseScale: host.options.iconSize / Style.bar.iconCanvas
+    readonly property real baseScale: host.options.iconSize / Commons.Style.bar.iconCanvas
     readonly property real dockWidth: Math.ceil(host.barSize * baseScale + 18)
     readonly property real viewportHeight: Math.min(column.implicitHeight, Math.max(100, height - 80))
     readonly property real dockHeight: viewportHeight + 36
@@ -213,7 +214,7 @@ PanelWindow {
                 height: surface.viewportHeight
                 contentHeight: column.implicitHeight
                 wheelScrollingEnabled: surface.shown && !surface.popupHeld
-                wheelStep: Math.ceil(Style.bar.iconSlot * surface.baseScale + 6)
+                wheelStep: Math.ceil(Commons.Style.bar.iconSlot * surface.baseScale + 6)
                 onContentYChanged: surface.host.clearTooltip()
 
                 DockLayout {

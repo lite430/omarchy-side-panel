@@ -1,8 +1,9 @@
+import "Plugin/CompatUi" as ThemeUi
 import QtQuick
 import QtQuick.Window
 import Quickshell
 import Quickshell.Io
-import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "Plugin" as Plugin
 import "Plugin/Ui" as PanelUi
@@ -41,8 +42,8 @@ ShellRoot {
         width: 720; height: 180; visible: true; color: "#181818"
         Item { id: canvas; anchors.fill: parent }
     }
-    Component { id: wrapperFactory; Item { width: 28; height: Style.bar.iconSlot } }
-    Component { id: buttonFactory; BarIconButton { bar: testHost; fixedWidth: 28; fixedHeight: Style.bar.iconSlot } }
+    Component { id: wrapperFactory; Item { width: 28; height: Commons.Style.bar.iconSlot } }
+    Component { id: buttonFactory; ThemeUi.BarIconButton { bar: testHost; fixedWidth: 28; fixedHeight: Commons.Style.bar.iconSlot } }
     Component { id: normalizerFactory; PanelUi.IconNormalizer {} }
     Component { id: effectFactory; PanelUi.MonochromeIconEffect { ink: testHost.foreground; smooth: true } }
     Component { id: actionFactory; Plugin.ActionIcon { host: testHost } }

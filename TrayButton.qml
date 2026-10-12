@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import Quickshell
-import qs.Commons
+import qs.Commons as Commons
 import "UsageModel.js" as Usage
 import "TrayIconModel.js" as TrayModel
 import "Ui/TraySvg.js" as TraySvg
@@ -25,30 +25,30 @@ Item {
     readonly property var iconNormalizer: PanelUi.IconNormalizer {
         parent: button
         sourceItem: button
-        targetSize: Style.bar.iconCanvas
+        targetSize: Commons.Style.bar.iconCanvas
     }
     implicitWidth: host.barSize
-    implicitHeight: Style.bar.iconSlot
+    implicitHeight: Commons.Style.bar.iconSlot
     width: implicitWidth
     height: implicitHeight
     layer.enabled: true
     layer.sourceRect: iconNormalizer.sourceRect
     layer.smooth: !host.options.pixelated
     layer.textureSize: host.options.pixelated
-        ? Qt.size(Math.round(width * host.options.iconPixels / Style.bar.iconCanvas),
-            Math.round(height * host.options.iconPixels / Style.bar.iconCanvas))
+        ? Qt.size(Math.round(width * host.options.iconPixels / Commons.Style.bar.iconCanvas),
+            Math.round(height * host.options.iconPixels / Commons.Style.bar.iconCanvas))
         : Qt.size(Math.ceil(width * Screen.devicePixelRatio * 4), Math.ceil(height * Screen.devicePixelRatio * 4))
     PanelUi.TrayMonogram {
         id: icon
         anchors.centerIn: parent
         anchors.alignWhenCentered: false
-        width: Style.bar.iconCanvas
-        height: Style.bar.iconCanvas
+        width: Commons.Style.bar.iconCanvas
+        height: Commons.Style.bar.iconCanvas
         initial: button.initial
         outlined: button.outlined
         customIconSource: button.customIconFile ? Qt.resolvedUrl("Icons/" + button.customIconFile) : ""
         foreground: button.foreground
-        attentionColor: Color.accent
+        attentionColor: Commons.Color.accent
         fontFamily: button.host.fontFamily
         attention: button.attention
     }

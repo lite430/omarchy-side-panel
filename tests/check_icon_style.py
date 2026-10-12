@@ -49,6 +49,7 @@ def main():
     projects = source.parent
     with tempfile.TemporaryDirectory(prefix='side-panel-icon-style-') as directory:
         root = Path(directory)
+        shutil.copytree(Path(__file__).resolve().parents[1] / "CompatUi", root / "Plugin/CompatUi")
         for name in ('Commons', 'Ui'):
             (root/name).symlink_to(omarchy/'shell'/name, target_is_directory=True)
         for name in ('Ui', 'Icons'):

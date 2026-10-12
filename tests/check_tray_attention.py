@@ -16,6 +16,7 @@ def main():
     omarchy = Path(os.environ.get("OMARCHY_PATH", "/usr/share/omarchy"))
     with tempfile.TemporaryDirectory(prefix="side-panel-tray-attention-") as directory:
         root = Path(directory)
+        shutil.copytree(Path(__file__).resolve().parents[1] / "CompatUi", root / "Plugin/CompatUi")
         for name in ("Commons", "Ui"):
             (root / name).symlink_to(omarchy / "shell" / name, target_is_directory=True)
         shutil.copytree(source / "Ui", root / "Plugin/Ui")

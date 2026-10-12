@@ -14,8 +14,19 @@ def main():
         root = Path(directory)
         plugin = root / "Plugin"
         plugin.mkdir()
+        shutil.copytree(Path(__file__).resolve().parents[1] / "CompatUi", plugin / "CompatUi")
         (root / "Commons").symlink_to(omarchy / "shell/Commons", target_is_directory=True)
         shutil.copytree(omarchy / "shell/Ui", root / "Ui")
+        # Exercise the same Qt 6.12 theme fixes used by the live dock panels.
+        for name in ("PopupCard.qml", "ThemeBorder.qml", "BorderGeometry.js"):
+            shutil.copy2(source / "CompatUi" / name, root / "Ui" / name)
+        keyboard = (omarchy / "shell/Ui/KeyboardPanel.qml").read_text()
+        keyboard = keyboard.replace("import qs.Commons\n", 'import qs.Commons as Commons\nimport "." as LocalUi\n')
+        keyboard = re.sub(r"\b(Color|Style|Util)\.", r"Commons.\1.", keyboard)
+        keyboard = re.sub(r"\bBorder\.", "LocalUi.ThemeBorder.", keyboard)
+        (root / "Ui/KeyboardPanel.qml").write_text(keyboard)
+        with (root / "Ui/qmldir").open("a") as stream:
+            stream.write("\nsingleton ThemeBorder 1.0 ThemeBorder.qml\n")
         # Exercise the real native anchoring handler without grabbing focus,
         # drawing a popup, or intercepting the user's pointer.
         popup = root / "Ui/PopupCard.qml"

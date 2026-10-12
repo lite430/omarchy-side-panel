@@ -1,6 +1,5 @@
 import QtQuick
-import qs.Commons
-
+import qs.Commons as Commons
 // Replace icon paint with matching SVGs while retaining native interaction.
 // Only walk visual children: separate menu windows keep their own UI.
 Item {
@@ -59,10 +58,10 @@ Item {
                 bind(item, "sourceSize.height", function() { return 128; });
                 var icon = item.parent;
                 if (icon && "symbolic" in icon && "icon" in icon) {
-                    bind(icon, "width", function() { return Style.bar.iconCanvas; });
-                    bind(icon, "height", function() { return Style.bar.iconCanvas; });
+                    bind(icon, "width", function() { return Commons.Style.bar.iconCanvas; });
+                    bind(icon, "height", function() { return Commons.Style.bar.iconCanvas; });
                     var normalizer = iconNormalizer.createObject(rasterizer, {parent: rasterizer,
-                        sourceItem: icon, targetSize: Style.bar.iconCanvas,
+                        sourceItem: icon, targetSize: Commons.Style.bar.iconCanvas,
                         normalize: rasterizer.normalizeTrayIcons});
                     normalizers.push(normalizer);
                     imageNormalizers.set(item, normalizer);

@@ -2,7 +2,7 @@ import QtQuick
 import QtTest
 import Quickshell
 import Quickshell.Services.SystemTray
-import qs.Commons
+import qs.Commons as Commons
 import "Plugin" as Plugin
 
 ShellRoot {
@@ -69,7 +69,7 @@ ShellRoot {
             try {
                 root.phase = "initial native frame";
                 var state = alerts.stateFor(wechat);
-                Color.accent = "#7aa2f7";
+                Commons.Color.accent = "#7aa2f7";
                 root.check(state && a.initial === "W" && b.initial === "W", "Application name was not rendered as W");
                 root.check(a.outlined && a.snapshot().background === "transparent", "WeChat still uses a filled tile");
                 mouse.tryVerify(function() { return state.currentFrame !== ""; }, 1000);
@@ -115,7 +115,7 @@ ShellRoot {
                 // middle-click actions and without waiting for an image blink.
                 wechat.status = Status.NeedsAttention;
                 root.check(a.attention && b.attention, "SNI NeedsAttention was ignored");
-                Color.accent = "#ff9944";
+                Commons.Color.accent = "#ff9944";
                 capture("theme");
                 mouse.mouseClick(b, 14, 14, Qt.RightButton);
                 root.check(!a.attention && !b.attention && root.menus === 1, "Context menu did not dismiss the alert");

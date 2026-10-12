@@ -1,10 +1,11 @@
+import "CompatUi" as ThemeUi
 import QtQuick
 import QtQuick.Window
 import Quickshell
-import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
-WidgetButton {
+ThemeUi.WidgetButton {
     id: root
     required property var host
     property real magnification: 1
@@ -15,7 +16,7 @@ WidgetButton {
     readonly property color ink: Qt.rgba(gray, gray, gray, host.foreground.a)
     readonly property real pixelRatio: Screen.devicePixelRatio
     readonly property real sizeFactor: (host.options.iconSize || 28) / 28
-    readonly property real baseScale: (host.options.iconSize || 28) / Style.bar.iconCanvas
+    readonly property real baseScale: (host.options.iconSize || 28) / Commons.Style.bar.iconCanvas
     readonly property real slotHeight: (Math.max(16, Math.round(17 * sizeFactor)) * 2
         + Math.max(4, Math.round(4 * sizeFactor)) + 10)
     readonly property int digitWidth: Math.round(Math.max(10, Math.round(11 * sizeFactor)) * magnification * pixelRatio)

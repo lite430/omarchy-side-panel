@@ -1,3 +1,4 @@
+import "Plugin/CompatUi" as ThemeUi
 import QtQuick
 import QtTest
 import Quickshell
@@ -51,7 +52,7 @@ ShellRoot {
     Window {
         id: window
         width: 160; height: 160; visible: true
-        WidgetButton {
+        ThemeUi.WidgetButton {
             id: native
             x: 10; y: 10; width: 40; height: 30; text: "x"
             onPressed: root.activations++
