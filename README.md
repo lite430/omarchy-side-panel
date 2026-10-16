@@ -10,6 +10,7 @@ An auto-hiding side dock for Omarchy, with support for multiple monitors.
 
 - Hover at either screen edge for 500 ms to reveal the dock. Moving to another screen hides the current dock before opening the next.
 - Consistent monochrome icons with hover magnification.
+- Hyprmoncfg uses matching rounded monitor outlines, switching between single and multiple displays.
 - Icons sort by click count, saved across restarts. Power stays first and the current time stays second, with monochrome seven-segment digits drawn on the screen pixel grid in a slightly taller slot for readability.
 - Scroll overflowing icons with smooth motion and elastic rebound. Hold **Alt** while scrolling to use an icon's original wheel action.
 - Uses existing right-side widgets and includes its own system tray, with all non-hidden app icons shown directly and no expander arrow. No separate tray plugin is required.

@@ -50,6 +50,7 @@ Item {
     readonly property var iconRasterizer: PanelUi.IconRasterizer {
         parent: root
         rootItem: root.expandedTray ? null : root.activeItem
+        iconComponentOverride: root.moduleName === "crmne.hyprmoncfg" ? monitorIcon : null
         glyphFiles: root.moduleName === "omarchy.bluetooth"
             ? ({"󰂯": "widgets/bluetooth.svg", "󰂱": "widgets/bluetooth.svg", "󰂲": "widgets/bluetooth.svg"})
             : root.moduleName === "omarchy.network" ? ({
@@ -63,6 +64,14 @@ Item {
                 ? ({"󰍺": "widgets/monitors.svg", "󰍹": "widgets/monitors.svg"}) : ({})
         pixelated: root.host.options.pixelated
         pixels: root.host.options.iconPixels
+    }
+
+    Component {
+        id: monitorIcon
+        PanelUi.MonitorIcon {
+            color: root.host.foreground
+            multiple: root.activeItem ? root.activeItem.monitorCount > 1 : false
+        }
     }
 
     readonly property var popupStyler: PanelUi.PopupStyler { rootObject: root.activeItem; label: root.moduleName }

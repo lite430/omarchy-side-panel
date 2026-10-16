@@ -6,6 +6,7 @@ Item {
     id: rasterizer
     property var rootItem: null
     property var glyphFiles: ({})
+    property Component iconComponentOverride: null
     property bool pixelated: true
     property bool normalizeTrayIcons: true
     property int pixels: 16
@@ -50,6 +51,10 @@ Item {
         seen.add(item);
         if (!adapted.has(item)) {
             adapted.set(item, true);
+            // Replace composite icon artwork (including badges) as one unit.
+            // The native button continues to own input, tooltips and dimming.
+            if (rasterizer.iconComponentOverride && "iconComponent" in item)
+                bind(item, "iconComponent", function() { return rasterizer.iconComponentOverride; });
             if ("sourceSize" in item && "fillMode" in item) {
                 images.push(item);
                 bind(item, "smooth", function() { return !rasterizer.pixelated; });
