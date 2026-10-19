@@ -8,6 +8,13 @@ import qs.Ui
 ThemeUi.WidgetButton {
     id: root
     required property var host
+    readonly property var calendarWidget: {
+        if (typeof host.moduleWidgets !== "function" || typeof host.targetBelongsToWindow !== "function") return null;
+        var window = root.QsWindow.window;
+        return host.moduleWidgets("andy.days").find(function(widget) {
+            return host.targetBelongsToWindow(widget, window);
+        }) || null;
+    }
     property real magnification: 1
     property date displayDate: clock.date
     readonly property string hours: Qt.formatDateTime(displayDate, "HH")
@@ -32,8 +39,16 @@ ThemeUi.WidgetButton {
     labelVisible: false
     fixedWidth: Math.ceil(Math.max(host.barSize * baseScale * magnification, paintWidth + 10) * pixelRatio) / pixelRatio
     fixedHeight: paintHeight + Math.round(10 * magnification * pixelRatio) / pixelRatio
-    pressable: false
+    pressable: !!calendarWidget
+    active: calendarWidget ? calendarWidget.opened === true : false
     tooltipText: Qt.formatDateTime(displayDate, "yyyy-MM-dd dddd HH:mm")
+
+    onPressed: function(button) {
+        if (!calendarWidget || (button !== Qt.LeftButton && button !== Qt.MiddleButton)) return;
+        host.recordIconClick("widget:omarchy.clock");
+        if (button === Qt.LeftButton) calendarWidget.toggle(root);
+        else calendarWidget.refresh();
+    }
 
     SystemClock { id: clock; precision: SystemClock.Minutes }
 

@@ -12,6 +12,7 @@ An auto-hiding side dock for Omarchy, with support for multiple monitors.
 - Consistent monochrome icons with hover magnification.
 - Hyprmoncfg uses matching rounded monitor outlines, switching between single and multiple displays.
 - Icons sort by click count, saved across restarts. Power stays first and the current time stays second, with monochrome seven-segment digits drawn on the screen pixel grid in a slightly taller slot for readability.
+- Click the time to toggle the `andy.days` calendar and weather panel, or middle-click to refresh it. Requires the `omarchy-days` plugin to be enabled.
 - Scroll overflowing icons with smooth motion and elastic rebound. Hold **Alt** while scrolling to use an icon's original wheel action.
 - Uses existing right-side widgets and includes its own system tray, with all non-hidden app icons shown directly and no expander arrow. No separate tray plugin is required.
 - Preserves tray hiding and pin settings, app actions, scrolling, context menus and nested submenus.

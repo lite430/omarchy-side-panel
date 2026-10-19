@@ -24,6 +24,10 @@ def main():
         keyboard = keyboard.replace("import qs.Commons\n", 'import qs.Commons as Commons\nimport "." as LocalUi\n')
         keyboard = re.sub(r"\b(Color|Style|Util)\.", r"Commons.\1.", keyboard)
         keyboard = re.sub(r"\bBorder\.", "LocalUi.ThemeBorder.", keyboard)
+        keyboard = re.sub(r"mask: Region \{.*?\n  \}", "mask: Region {}", keyboard, count=1, flags=re.S)
+        keyboard = keyboard.replace("WlrLayershell.keyboardFocus: open\n    ? (focusPrimed ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)\n    : WlrKeyboardFocus.None", "WlrLayershell.keyboardFocus: WlrKeyboardFocus.None")
+        keyboard = keyboard.replace("visible: root.open && !!root.screen", "mask: Region {}\n        visible: root.open && !!root.screen")
+        keyboard = keyboard.replace("opacity: root.open || root.popoutSwitching ? 1.0 : 0", "opacity: 0")
         (root / "Ui/KeyboardPanel.qml").write_text(keyboard)
         with (root / "Ui/qmldir").open("a") as stream:
             stream.write("\nsingleton ThemeBorder 1.0 ThemeBorder.qml\n")
@@ -51,6 +55,7 @@ def main():
         for side in ("!surface.onRight", "surface.onRight"):
             text = text.replace(f"surface.shown && {side} ? surface.dockWidth + surface.host.options.hideDistance : 0", "0")
         text = text.replace("id: scene\n", "id: scene\n        opacity: 0\n")
+        text = text.replace("id: clockIcon\n", 'id: clockIcon\n                            objectName: "testClock"\n')
         text = text.replace("id: powerPopup\n", 'id: powerPopup\n        objectName: "powerPopup"\n        mask: Region {}\n')
         text = text.replace("id: powerCapsule\n", "id: powerCapsule\n            opacity: 0\n")
         text = text.replace("active: powerPopup.open", "active: false")

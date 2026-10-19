@@ -12,6 +12,7 @@ ShellRoot {
     property int activations: 0
     property int menus: 0
     property int reloads: 0
+    property int calendarRefreshes: 0
     property var trayItem: ({id: "lzc-client-desktop_status_icon_1", icon: "", onlyMenu: false,
         activate: function() { root.activations++; },
         secondaryActivate: function() { root.activations++; },
@@ -35,6 +36,11 @@ ShellRoot {
         function recordIconClick(key) { usage.record(key); }
         function showTooltip(target, text) {}
         function hideTooltip(target) {}
+        function moduleWidgets(id) {
+            root.check(id === "andy.days", "Clock requested the system calendar instead of andy.days");
+            return [otherCalendar, calendar];
+        }
+        function targetBelongsToWindow(target, window) { return target === calendar; }
         function reloadShell() {
             root.check(JSON.parse(disk.text()).counts["action:reload"] === 1,
                 "Reload ran before the count reached disk");
@@ -48,6 +54,18 @@ ShellRoot {
         function trayIconSource(icon) { return icon; }
         function trayTooltip(item) { return item.id; }
         function openTrayMenu(item, button, event) { root.menus++; }
+    }
+    QtObject {
+        id: otherCalendar
+        function toggle(anchor) { throw new Error("Clock opened another screen's calendar"); }
+        function refresh() { throw new Error("Clock refreshed another screen's calendar"); }
+    }
+    QtObject {
+        id: calendar
+        property bool opened: false
+        property var lastAnchor: null
+        function toggle(anchor) { lastAnchor = anchor; opened = !opened; }
+        function refresh() { root.calendarRefreshes++; }
     }
     Window {
         id: window
@@ -151,6 +169,15 @@ ShellRoot {
                     usage.record("widget:test");
                 } else {
                     root.check(usage.ready && !usage.error, "Store did not load");
+                    mouse.mouseClick(clock, clock.width / 2, 20, Qt.LeftButton);
+                    root.check(calendar.opened && clock.active && calendar.lastAnchor === clock,
+                        "Clock click did not open and anchor the project calendar");
+                    mouse.mouseClick(clock, clock.width / 2, 20, Qt.LeftButton);
+                    root.check(!calendar.opened && !clock.active, "Clock click did not close the calendar");
+                    mouse.mouseClick(clock, clock.width / 2, 20, Qt.RightButton);
+                    mouse.mouseClick(clock, clock.width / 2, 20, Qt.MiddleButton);
+                    root.check(root.calendarRefreshes === 1, "Clock middle-click did not refresh the project calendar");
+                    root.check(usage.counts["widget:omarchy.clock"] === 3, "Clock clicks were not counted once");
                     root.check(cellA.y === 0 && cellB.y === 48 && cellC.y === 72, "Initial order incorrect");
                     mouse.mouseClick(native, 20, 15, Qt.LeftButton);
                     mouse.mouseClick(native, 20, 15, Qt.RightButton);

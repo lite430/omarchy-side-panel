@@ -10,6 +10,26 @@ ShellRoot {
     id: root
     property string failure: ""
     function check(value, message) { if (!value) throw new Error(message); }
+    Component {
+        id: calendarFactory
+        ShellUi.BarWidget {
+            id: calendar
+            moduleName: "andy.days"
+            implicitWidth: 28; implicitHeight: 27
+            property bool opened: false
+            property var popupAnchor: calendar
+            function open(anchor) { popupAnchor = anchor || calendar; opened = true; }
+            function close() { opened = false; }
+            function toggle(anchor) { opened ? close() : open(anchor); }
+            function refresh() {}
+            ShellUi.KeyboardPanel {
+                bar: calendar.bar; owner: calendar
+                anchorItem: calendar.popupAnchor
+                open: calendar.opened
+                contentWidth: 400; contentHeight: 300
+            }
+        }
+    }
     Item {
         id: testHost
         property var options: ({iconSize: 28, magnification: 1.28, hideDistance: 24, triggerWidth: 2,
@@ -31,24 +51,39 @@ ShellRoot {
         property var tooltipTarget: null
         property bool tooltipShown: false
         property string tooltipText: ""
-        property var rightEntries: []
+        property var rightEntries: [{id: "andy.days"}]
         property var orderCounts: ({})
         property var surfaces: []
+        property var moduleSlots: []
+        property var barWidgetRegistry: ({widgets: {"andy.days": {
+            component: calendarFactory, metadata: {firstParty: true, displayName: "日历与天气"}
+        }}})
         readonly property var dockCoordinator: handoff
         function clearTooltip() {}
         function dismissDockPopout() { activePopout = null; }
         function hideTooltip(target) {}
         function showTooltip(target, text) {}
+        function targetTooltipHovered(target) { return false; }
         function registerClickTarget(target) {}
         function unregisterClickTarget(target) {}
         function recordIconClick(key) {}
         function iconClickCount(key) { return 0; }
         function refreshIconOrder() {}
+        function registerModuleSlot(slot) { moduleSlots = moduleSlots.concat([slot]); }
+        function unregisterModuleSlot(slot) { moduleSlots = moduleSlots.filter(item => item !== slot); }
+        function moduleWidgets(id) {
+            return moduleSlots.filter(slot => slot.moduleName === id && slot.activeItem).map(slot => slot.activeItem);
+        }
         function registerSurface(surface) { surfaces = surfaces.concat([surface]); }
         function unregisterSurface(surface) { surfaces = surfaces.filter(item => item !== surface); }
         function requestPopout(target) { activePopout = target; }
         function releasePopout(target) { if (activePopout === target) activePopout = null; }
-        function targetBelongsToWindow(target, window) { return target === window; }
+        function targetBelongsToWindow(target, window) {
+            if (!target) return false;
+            var actual = "contentItem" in target && "screen" in target
+                ? ("currentWindow" in target ? target.currentWindow : target) : target.QsWindow.window;
+            return actual === window || !!(actual && "dockOwner" in actual && actual.dockOwner === window);
+        }
     }
     Plugin.DockCoordinator { id: handoff; host: testHost }
     Variants {
@@ -111,6 +146,7 @@ ShellRoot {
         check(surface.edgeSide === "", "Edge hover did not clear on departure");
     }
     function open(surface, side, y) {
+        testHost.position = side;
         enter(surface, side, y);
         input.wait(20);
         check(surface.edgeSide === side, "Edge handler covered: " + surface.screen.name + ":" + side);
@@ -123,6 +159,30 @@ ShellRoot {
         leave(surface, side);
         input.wait(200);
         check(!surface.shown && surface.revealProgress === 0, "Dock failed to hide");
+    }
+    function clockCalendar(surface, side) {
+        var window = windowFor(surface, side);
+        var clock = input.findChild(surface, "testClock");
+        check(clock && clock.pressable && clock.calendarWidget, "Pinned clock has no project calendar");
+        check(clock.calendarWidget.moduleName === "andy.days", "Clock is connected to the system calendar");
+        var point = window.contentItem.mapFromItem(clock, clock.width / 2, clock.height / 2);
+        input.mouseClick(window.contentItem, point.x, point.y);
+        input.wait(100);
+        check(clock.calendarWidget.opened && clock.active && surface.popupHeld,
+            "Clock click did not open and hold the calendar on " + side);
+        check(clock.calendarWidget.popupAnchor === clock, "Calendar was not anchored to the clicked clock");
+        var slot = testHost.moduleSlots.find(item => item.activeItem === clock.calendarWidget);
+        var frames = slot.popupStyler.snapshot();
+        check(frames.length === 1 && frames[0].positioning.side === side,
+            "Calendar did not follow its clock anchor on " + side);
+        input.mouseMove(window.contentItem, -1, 100);
+        input.wait(150);
+        check(surface.shown && surface.popupHeld, "Dock hid under the calendar");
+        input.mouseMove(window.contentItem, point.x, point.y);
+        input.mouseClick(window.contentItem, point.x, point.y);
+        input.wait(200);
+        check(!clock.calendarWidget.opened && !clock.active && !surface.popupHeld,
+            "Second clock click did not close and release the calendar");
     }
     function scrollIcons(surface, side) {
         var window = windowFor(surface, side);
@@ -222,6 +282,7 @@ ShellRoot {
                             open(surface, side, Math.floor(surface.height / 2));
                             if (i === 0 && repeat === 0) scrollIcons(surface, side);
                             if (i === 0 && repeat === 0) popupSpacing(surface, side);
+                            if (repeat === 0) clockCalendar(surface, side);
                             if (repeat === 0) powerMenu(surface, side);
                             else close(surface, side);
                         }
@@ -254,7 +315,7 @@ ShellRoot {
                     close(second, "right");
                 }
                 check(!failure, failure);
-                console.log("EDGES_PASS", testHost.surfaces.length + " screens: native popup/keyboard-panel spacing matches tooltip on both sides, repeated resize/reopen, power menu, elastic scrolling and cross-screen handoff passed");
+                console.log("EDGES_PASS", testHost.surfaces.length + " screens: clock calendar clicks and anchoring on both sides, native popup spacing, repeated resize/reopen, power menu, elastic scrolling and cross-screen handoff passed");
             } catch (error) { console.log("EDGES_FAIL", String(error)); }
             Qt.quit();
         }
