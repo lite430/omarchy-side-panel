@@ -52,33 +52,8 @@ Item {
         fontFamily: button.host.fontFamily
         attention: button.attention
     }
-    // Inspect native frames without painting them into the visible icon.
-    Canvas {
-        id: probe
-        width: 32; height: 32; opacity: 0
-        readonly property string iconSource: String(button.modelData.icon || "")
-        property string loadedSource: ""
-        function refresh() {
-            if (!available || !button.attentionState) return;
-            if (loadedSource) unloadImage(loadedSource);
-            loadedSource = iconSource;
-            if (loadedSource) {
-                loadImage(loadedSource);
-                if (isImageLoaded(loadedSource)) sample();
-            }
-            else button.attentionState.observeFrame({signature: "blank", blank: true});
-        }
-        function sample() {
-            if (!button.attentionState || !loadedSource || !isImageLoaded(loadedSource)) return;
-            var context = getContext("2d");
-            context.reset(); context.drawImage(loadedSource, 0, 0, width, height);
-            button.attentionState.observeFrame(TrayModel.frame(context.getImageData(0, 0, width, height).data));
-        }
-        onIconSourceChanged: refresh()
-        onAvailableChanged: if (available) refresh()
-        onImageLoaded: sample()
-    }
-    onAttentionStateChanged: probe.refresh()
+    // Native icon URLs are untrusted. Shared attention detection consumes
+    // bounded raw SNI pixels in a separate process, never an image provider.
     function dismissAttention() { if (attentionState) attentionState.acknowledge(); }
     function snapshot() {
         return {name: TrayModel.name(modelData), initial: customIconFile ? "" : initial, attention: attention,

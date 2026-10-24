@@ -1,4 +1,4 @@
-"""Check real frame detection, shared click dismissal and rendered dot colors."""
+"""Check shared raw-frame alert state, click dismissal and rendered dot colors."""
 import os
 from pathlib import Path
 import re
@@ -78,7 +78,7 @@ def main():
         assert themed[offset:offset+3] == bytes.fromhex("ff9944"), "Dot did not follow a theme change"
         assert all(alert[i:i+4] == themed[i:i+4] for i in range(0, len(alert), 4)
                    if not (i // 4 % 112 >= 66 and i // 4 // 112 <= 42)), "Accent change recolored the outline or W"
-        print("Native blink detection, outlined W, custom icons, independent theme accent, automatic clearing and shared click dismissal passed")
+        print("Raw-frame alert state, outlined W, custom icons, independent theme accent, automatic clearing and shared click dismissal passed")
 
 
 if __name__ == "__main__":

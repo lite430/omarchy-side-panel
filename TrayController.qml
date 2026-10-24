@@ -5,11 +5,13 @@ import "CompatUi" as ThemeUi
 import Quickshell
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 import Quickshell.Services.SystemTray
 import qs.Commons as Commons
 import qs.Ui
 import "TrayModel.js" as TrayModel
+import "TrayIconModel.js" as TrayIconModel
+import "Ui/TraySvg.js" as TraySvg
+import "Ui" as PanelUi
 
 BarWidget {
   id: root
@@ -126,23 +128,6 @@ BarWidget {
     activeTrayItem = item
     activeTrayAnchor = anchorItem
     trayMenuOpen = true
-  }
-
-  function trayIconSource(icon) {
-    // Quickshell already resolves the tray icon into a ready-to-use image://
-    // URL, including a "?path=" fallback search dir for apps that ship their
-    // tray icon outside a standard theme (e.g. Steam's flat public/ dir). Hand
-    // it straight to IconImage; guessing a theme sub-directory here only broke
-    // apps whose layout didn't match the guess.
-    return String(icon || "")
-  }
-
-  // Symbolic icons ship a fixed fill (often near-white) that the host is meant
-  // to recolor to its foreground; detect them by the freedesktop "-symbolic"
-  // name suffix so they can be tinted instead of rendered as-is.
-  function iconIsSymbolic(icon) {
-    var name = String(icon || "").split("?")[0]
-    return name.slice(-9) === "-symbolic"
   }
 
   function trayTooltip(item) {
@@ -281,7 +266,7 @@ BarWidget {
             anchors.left: parent.left
             width: 16
             height: 16
-            icon: rowRoot.modelData.icon
+            item: rowRoot.modelData
           }
 
           Text {
@@ -513,28 +498,12 @@ BarWidget {
                 font.pixelSize: Commons.Style.font.bodySmall
               }
 
-              Image {
-                id: menuIcon
-                visible: !menuRow.modelData.isSeparator && String(menuRow.modelData.icon || "") !== ""
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: Commons.Style.space(24)
-                width: Commons.Style.space(16)
-                height: Commons.Style.space(16)
-                fillMode: Image.PreserveAspectFit
-                // Decode at physical pixels: IconImage uses the logical size,
-                // which leaves PNG icons upscaled and blurry on HiDPI displays.
-                sourceSize.width: width * Screen.devicePixelRatio
-                sourceSize.height: height * Screen.devicePixelRatio
-                source: menuRow.modelData.icon
-              }
-
               Text {
                 textFormat: Text.PlainText
                 visible: !menuRow.modelData.isSeparator
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
-                anchors.leftMargin: menuIcon.visible ? Commons.Style.space(46) : Commons.Style.space(28)
+                anchors.leftMargin: Commons.Style.space(28)
                 anchors.right: submenuGlyph.left
                 anchors.rightMargin: Commons.Style.space(8)
                 text: menuRow.rowText
@@ -582,36 +551,18 @@ BarWidget {
     }
   }
 
-  // Renders a tray icon, recoloring symbolic icons to the bar foreground so
-  // they stay visible on any theme (a raw symbolic icon keeps its baked-in
-  // fill and disappears against a matching background).
-  component TrayIcon: Item {
+  // Use the same packaged artwork/monograms as the dock. Hidden management
+  // rows must not resolve application-controlled icon paths either.
+  component TrayIcon: PanelUi.TrayMonogram {
     id: trayIconRoot
-    required property var icon
-    readonly property bool symbolic: monochrome || root.iconIsSymbolic(icon)
-    property bool monochrome: false
-
-    Image {
-      id: trayIconImage
-      anchors.fill: parent
-      fillMode: Image.PreserveAspectFit
-      // Decode at physical pixels: IconImage uses the logical size,
-      // which leaves PNG icons upscaled and blurry on HiDPI displays.
-      sourceSize.width: Math.round(Math.min(width, height) * Screen.devicePixelRatio)
-      sourceSize.height: Math.round(Math.min(width, height) * Screen.devicePixelRatio)
-      source: root.trayIconSource(trayIconRoot.icon)
-      // Kept as a hidden layer so the effect can sample it as a texture.
-      visible: !trayIconRoot.symbolic
-      layer.enabled: trayIconRoot.symbolic
-    }
-
-    MultiEffect {
-      anchors.fill: trayIconImage
-      source: trayIconImage
-      visible: trayIconRoot.symbolic
-      colorization: 1.0
-      colorizationColor: root.foreground
-    }
+    required property var item
+    readonly property string customFile: TraySvg.packagedFile(
+      [item.id, item.title, item.tooltipTitle].join(" "), "")
+    initial: TrayIconModel.initial(item)
+    outlined: !customFile && /wechat|weixin|微信/i.test(TrayIconModel.name(item) + " " + String(item.id || ""))
+    customIconSource: customFile ? Qt.resolvedUrl("Icons/" + customFile) : ""
+    foreground: root.foreground
+    fontFamily: root.fontFamily
   }
 
 }

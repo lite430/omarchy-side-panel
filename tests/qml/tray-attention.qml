@@ -23,7 +23,11 @@ ShellRoot {
         function secondaryActivate() { root.activations++; }
         function scroll(delta, horizontal) {}
     }
-    Plugin.TrayAttention { id: alerts; items: [wechat] }
+    Plugin.TrayAttention { id: alerts; items: [wechat]; monitorFrames: false }
+    function frame(blank) {
+        alerts.receiveFrame({identity: [wechat.id, wechat.title, wechat.tooltipTitle],
+            frame: {signature: blank ? "blank" : "native-frame", blank: blank}});
+    }
     Item {
         id: host
         property var trayAttention: alerts
@@ -72,6 +76,7 @@ ShellRoot {
                 Commons.Color.accent = "#7aa2f7";
                 root.check(state && a.initial === "W" && b.initial === "W", "Application name was not rendered as W");
                 root.check(a.outlined && a.snapshot().background === "transparent", "WeChat still uses a filled tile");
+                frame(false);
                 mouse.tryVerify(function() { return state.currentFrame !== ""; }, 1000);
                 root.check(state.currentFrame !== "" && !state.lastBlank, "Native frame was not sampled");
                 root.check(!a.attention && !b.attention, "Normal icon raised an alert");
@@ -83,31 +88,31 @@ ShellRoot {
 
                 // Real Catlink blink: status remains Active while the bitmap
                 // alternates between a normal image and a transparent frame.
-                wechat.icon = Qt.resolvedUrl("blank.svg");
+                frame(true);
                 root.phase = "first blink";
                 mouse.tryVerify(function() { return a.attention && b.attention; }, 1000);
                 root.check(a.attention && b.attention, "Transparent blink frame did not raise shared dots");
                 capture("alert");
-                wechat.icon = Qt.resolvedUrl("normal.svg");
+                frame(false);
                 mouse.wait(150);
                 root.check(a.attention && b.attention, "Dot followed the blink's bright phase");
                 mouse.mouseClick(a, 14, 14, Qt.LeftButton);
                 root.check(!a.attention && !b.attention && root.activations === 1,
                     "Primary click did not clear all screen copies or activate the app");
-                wechat.icon = Qt.resolvedUrl("blank.svg");
+                frame(true);
                 mouse.wait(150);
-                wechat.icon = Qt.resolvedUrl("normal.svg");
+                frame(false);
                 mouse.wait(150);
                 root.check(!a.attention && !b.attention, "Same blink episode reappeared after acknowledgement");
                 mouse.tryVerify(function() { return !state.blinking; }, 3500);
                 root.check(!state.blinking && !state.acknowledged, "Blink end did not reset the episode");
                 capture("cleared");
 
-                wechat.icon = Qt.resolvedUrl("blank.svg");
+                frame(true);
                 root.phase = "new blink episode";
                 mouse.tryVerify(function() { return a.attention; }, 1000);
                 root.check(a.attention, "A new blink episode did not raise a dot");
-                wechat.icon = Qt.resolvedUrl("normal.svg");
+                frame(false);
                 mouse.tryVerify(function() { return !a.attention && !b.attention; }, 3500);
                 root.check(!a.attention && !b.attention, "Stopped blinking left a dot behind");
 

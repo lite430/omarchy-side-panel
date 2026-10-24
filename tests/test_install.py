@@ -105,6 +105,7 @@ class InstallationLifecycle(unittest.TestCase):
         self.assertTrue((self.plugin / "Bar.qml").exists())
         self.assertTrue((self.plugin / "TrayRecovery.qml").exists())
         self.assertTrue((self.plugin / "recover-tray.py").exists())
+        self.assertTrue((self.plugin / "monitor-tray-frames.py").exists())
         self.assertTrue((self.plugin / "TrayController.qml").exists())
         self.assertTrue((self.plugin / "TrayModel.js").exists())
         self.assertTrue((self.plugin / "licenses/OMARCHY-LICENSE").exists())

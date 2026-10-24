@@ -30,15 +30,60 @@ def export_menu():
         "AttentionMovieName": ("s", ""), "ItemIsMenu": ("b", False), "Menu": ("o", "/Menu"),
         "ToolTip": ("(sa(iiay)ss)", ("", [], "Internal tray test", "")),
     }
+    icon_directory = os.environ.get("TRAY_ICON_FIXTURE_DIR")
+    if icon_directory:
+        properties.update({"Id": ("s", "wechat"), "Title": ("s", "wechat"),
+            "ToolTip": ("(sa(iiay)ss)", ("", [], "wechat", "")),
+            "IconName": ("s", "side-panel-untrusted-test.png"),
+            "IconThemePath": ("s", icon_directory),
+            "IconPixmap": ("a(iiay)", [(32, 32, bytes([255, 20, 80, 120]) * 32 * 32)])})
+        bus.call_sync("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+                      "RequestName", GLib.Variant("(su)", ("org.example.SidePanelFixture", 4)), None,
+                      Gio.DBusCallFlags.NONE, 2000, None)
+
+        def control(_, __, ___, ____, method, parameters, invocation):
+            value = parameters.unpack()[0]
+            if method == "Frame":
+                if value == "oversized":
+                    pixels = [(2147483647, 2147483647, b"1234")]
+                elif value == "file-only":
+                    pixels = []
+                else:
+                    pixels = [(32, 32, bytes([0, 255, 20, 30] if value == "blank" else [255, 20, 80, 120]) * 32 * 32)]
+                properties["IconPixmap"] = ("a(iiay)", pixels)
+                bus.emit_signal(None, "/StatusNotifierItem", "org.kde.StatusNotifierItem", "NewIcon", None)
+            elif method == "Status":
+                properties["Status"] = ("s", value)
+                bus.emit_signal(None, "/StatusNotifierItem", "org.kde.StatusNotifierItem", "NewStatus", GLib.Variant("(s)", (value,)))
+            invocation.return_value(None)
+
+        controls = '''<node><interface name="org.example.SidePanelFixture">
+          <method name="Frame"><arg type="s" direction="in"/></method>
+          <method name="Status"><arg type="s" direction="in"/></method>
+        </interface></node>'''
+        bus.register_object("/StatusNotifierItem", Gio.DBusNodeInfo.new_for_xml(controls).interfaces[0], control, None, None)
+
     xml = '<node><interface name="org.kde.StatusNotifierItem">' + "".join(
         f'<property name="{key}" type="{signature}" access="read"/>'
-        for key, (signature, _) in properties.items()) + "</interface></node>"
+        for key, (signature, _) in properties.items()) + '''
+          <method name="Activate"><arg type="i" direction="in"/><arg type="i" direction="in"/></method>
+          <method name="SecondaryActivate"><arg type="i" direction="in"/><arg type="i" direction="in"/></method>
+          <method name="Scroll"><arg type="i" direction="in"/><arg type="s" direction="in"/></method>
+          <signal name="NewIcon"/><signal name="NewStatus"><arg type="s"/></signal>
+        </interface></node>'''
+
+    def action(_, __, ___, ____, method, parameters, invocation):
+        print(f"TRAY_ACTION {method}", flush=True)
+        invocation.return_value(None)
+
     bus.register_object("/StatusNotifierItem", Gio.DBusNodeInfo.new_for_xml(xml).interfaces[0],
-                        None, lambda _, __, ___, ____, key: GLib.Variant(*properties[key]), None)
+                        action, lambda _, __, ___, ____, key: GLib.Variant(*properties[key]), None)
 
     def node(index, label, children=()):
         props = {"label": GLib.Variant("s", label), "enabled": GLib.Variant("b", True),
                  "visible": GLib.Variant("b", True)}
+        if icon_directory:
+            props["icon-name"] = GLib.Variant("s", "side-panel-untrusted-test.png")
         if children:
             props["children-display"] = GLib.Variant("s", "submenu")
         return index, props, [GLib.Variant("(ia{sv}av)", child) for child in children]
@@ -79,7 +124,7 @@ def export_menu():
         invocation.return_value(result)
 
     menu_properties = {"Version": ("u", 3), "TextDirection": ("s", "ltr"),
-                       "Status": ("s", "normal"), "IconThemePath": ("as", [])}
+                       "Status": ("s", "normal"), "IconThemePath": ("as", [icon_directory] if icon_directory else [])}
     bus.register_object("/Menu", Gio.DBusNodeInfo.new_for_xml(xml).interfaces[0], call,
                         lambda _, __, ___, ____, key: GLib.Variant(*menu_properties[key]), None)
 

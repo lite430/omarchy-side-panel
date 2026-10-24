@@ -17,13 +17,15 @@ An auto-hiding side dock for Omarchy, with support for multiple monitors.
 - Uses existing right-side widgets and includes its own system tray, with all non-hidden app icons shown directly and no expander arrow. No separate tray plugin is required.
 - Preserves tray hiding and pin settings, app actions, scrolling, context menus and nested submenus.
 - Automatically restores live tray items after Shell restarts, including Catlink's remote WeChat tray.
-- WeChat uses a rounded outline and uppercase W matching the other icons' strokes; other ordinary tray icons use gray rounded tiles with uppercase initials, preserving the custom LazyCat and FlClash artwork. Blinking becomes a dot that follows the theme accent and clears when attention ends or the icon is clicked.
+- WeChat uses a rounded outline and uppercase W matching the other icons' strokes; other ordinary tray icons use gray rounded tiles with uppercase initials, preserving the custom LazyCat and FlClash artwork. Raw-pixel blinking (including Catlink WeChat) and standard SNI attention become a dot that follows the theme accent and clears when attention ends or the icon is clicked. Tray menus show text and checkmarks.
 - Includes power, recording, idle, notification and Shell restart controls.
 - The first button opens a menu with lock, shutdown, logout and reboot actions.
 
 ## Install
 
 Requires Omarchy with Quickshell and support for custom bar plugins.
+
+Blink detection also uses Python's GObject bindings (`python-gobject` on Arch). A separate, memory-limited helper compares bounded SNI `IconPixmap` pixels; the panel does not decode application-provided tray or menu image files. File-only icon animations are not sampled. If the helper is unavailable, standard SNI attention still works.
 
 ```sh
 git clone https://github.com/manateelazycat/omarchy-side-panel.git

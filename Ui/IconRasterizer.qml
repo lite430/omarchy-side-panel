@@ -121,7 +121,7 @@ Item {
                 normalization: normalizer ? normalizer.snapshot() : null,
                 layerEnabled: item.parent.layer.enabled,
                 textureWidth: item.parent.layer.textureSize.width,
-                svg: vector ? {ready: vector.ready, file: vector.file || vector.generatedSource, identity: vector.identity} : null};
+                svg: vector ? {ready: vector.ready, file: vector.file, identity: vector.identity} : null};
         });
     }
     function glyphSnapshot() {
