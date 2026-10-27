@@ -20,6 +20,10 @@ PanelWindow {
     readonly property bool pointerHovered: pointerHover.hovered || leftTriggerHover.hovered || rightTriggerHover.hovered
     readonly property string pendingSide: host.dockCoordinator.candidate === surface ? host.dockCoordinator.candidateSide : ""
     property bool revealed: false
+    // Keyboard navigation: only a dock summoned by hotkey takes keyboard
+    // focus, and only until a panel opens (panels handle their own keys) or
+    // the dock hides. Any unhandled key gives focus back to the session.
+    property bool keyboardSummoned: false
     property real pointerY: -10000
     readonly property real baseScale: host.options.iconSize / Commons.Style.bar.iconCanvas
     readonly property real dockWidth: Math.ceil(host.barSize * baseScale + 18)
@@ -41,7 +45,7 @@ PanelWindow {
     visible: !remapGuard.remapping
     WlrLayershell.namespace: "omarchy-side-panel"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: keyboardSummoned && shown && !popupHeld ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     Behavior on revealProgress {
         NumberAnimation { duration: surface.host.options.animationDuration; easing.type: Easing.OutCubic }
@@ -93,16 +97,46 @@ PanelWindow {
             }),
             actions: Array.from({length: actions.count}, function(_, index) {
                 var cell = actions.itemAt(index);
-                return cell ? {id: cell.modelData, y: dockTop + 18 + cell.y + cell.height / 2 - flick.contentY,
-                    scale: cell.iconScale, normalization: cell.children[0].iconNormalizer.snapshot(),
-                    vectorGlyphs: cell.children[0].iconRasterizer.glyphSnapshot()} : null;
+                if (!cell) return null;
+                // Find the icon content among the cell's children; the cell
+                // may also carry decorative items (selection highlight).
+                var content = null;
+                for (var c = 0; c < cell.children.length; c++)
+                    if (cell.children[c].iconNormalizer && cell.children[c].iconRasterizer) { content = cell.children[c]; break; }
+                if (!content) return null;
+                return {id: cell.modelData, y: dockTop + 18 + cell.y + cell.height / 2 - flick.contentY,
+                    scale: cell.iconScale, normalization: content.iconNormalizer.snapshot(),
+                    vectorGlyphs: content.iconRasterizer.glyphSnapshot()};
             })};
     }
     Component.onCompleted: host.registerSurface(surface)
     Component.onDestruction: host.unregisterSurface(surface)
     onShownChanged: {
         updateHoverTimers();
-        if (!shown) host.clearTooltip();
+        if (!shown) { host.clearTooltip(); keyboardSummoned = false }
+    }
+    // Keyboard navigation: a hotkey-summoned dock catches Tab/Shift+Tab to
+    // walk its panels and Esc to hide. Any other key returns focus to the
+    // session, so keys are never held hostage by an unused dock.
+    Item {
+        id: keyboardCatcher
+        anchors.fill: parent
+        focus: true
+        enabled: surface.keyboardSummoned && surface.shown && !surface.popupHeld
+        Keys.priority: Keys.BeforeItem
+        Keys.onPressed: function(event) {
+            var forward = event.key === Qt.Key_Tab && !(event.modifiers & Qt.ShiftModifier)
+            var back = event.key === Qt.Key_Backtab || (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))
+            if (forward || back) {
+                if (host.cycleDockPanel(surface.currentWindow, back ? -1 : 1)) { event.accepted = true; return }
+            } else if (event.key === Qt.Key_Escape) {
+                surface.revealed = false
+                surface.keyboardSummoned = false
+                event.accepted = true
+                return
+            }
+            surface.keyboardSummoned = false
+        }
     }
     onRevealProgressChanged: {
         if (revealProgress === 0) {
@@ -131,6 +165,8 @@ PanelWindow {
     }
     onPopupHeldChanged: {
         updateHoverTimers();
+        // A panel takes over keyboard input; never steal keys back after it.
+        if (popupHeld) keyboardSummoned = false
     }
     // Hover signal handlers can run before this combined binding updates.
     // Re-evaluate departure after its new value has been committed.
@@ -226,6 +262,7 @@ PanelWindow {
                         id: powerCell
                         usageKey: "action:power"
                         ordinal: 0
+                        selected: powerPopup.open
                         nativeHeight: powerIcon.implicitHeight
                         ActionIcon {
                             id: powerIcon
@@ -266,6 +303,11 @@ PanelWindow {
                                 id: cell
                                 usageKey: "widget:" + widget.moduleName
                                 ordinal: (group.index + 1) * 100000
+                                // Live selection state: the bar host records the
+                                // plugin id of whatever popup is open, which
+                                // every panel (official or third-party) sets.
+                                selected: surface.host.activePopoutPluginId !== ""
+                                    && surface.host.activePopoutPluginId === widget.moduleName
                                 nativeHeight: widget.naturalHeight
                                 WidgetSlot {
                                     id: widget
@@ -377,6 +419,7 @@ PanelWindow {
         property string usageKey: ""
         property int ordinal: 0
         property var trayButton: null
+        property bool selected: false
         property real nativeHeight: 27
         readonly property real centerY: surface.dockTop + 18 + y + height / 2 - flick.contentY
         readonly property real proximityScale: pointerHover.hovered && !surface.popupHeld
@@ -388,6 +431,36 @@ PanelWindow {
         Component.onCompleted: column.registerCell(dockCell)
         Component.onDestruction: column.unregisterCell(dockCell)
         Behavior on iconScale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+        // Selection glow: shows which dock entry's panel is open while
+        // keyboard-cycling. Declared first so icon content draws above it.
+        Rectangle {
+            readonly property real inset: 4
+            readonly property bool shown: dockCell.selected && dockCell.height > 4
+            x: inset
+            width: dockCell.width - inset * 2
+            y: 1
+            height: Math.max(0, dockCell.height - 2)
+            radius: Math.min(width, height) / 2
+            visible: shown || opacity > 0
+            color: surface.host.urgent
+            opacity: shown ? 0.18 : 0
+            Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+        }
+        Rectangle {
+            readonly property real inset: 4
+            readonly property bool shown: dockCell.selected && dockCell.height > 4
+            x: inset
+            width: dockCell.width - inset * 2
+            y: 1
+            height: Math.max(0, dockCell.height - 2)
+            radius: Math.min(width, height) / 2
+            visible: shown || opacity > 0
+            color: "transparent"
+            border.width: 1
+            border.color: surface.host.urgent
+            opacity: shown ? 0.75 : 0
+            Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+        }
     }
 
     PopupWindow {

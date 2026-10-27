@@ -1,1 +1,14 @@
 singleton PopupAppearance 1.0 PopupAppearance.qml
+ElasticFlickable 1.0 ElasticFlickable.qml
+IconClickTracker 1.0 IconClickTracker.qml
+IconNormalizer 1.0 IconNormalizer.qml
+IconRasterizer 1.0 IconRasterizer.qml
+MonitorIcon 1.0 MonitorIcon.qml
+MonochromeIconEffect 1.0 MonochromeIconEffect.qml
+PopupPositioner 1.0 PopupPositioner.qml
+PopupPropertyBinding 1.0 PopupPropertyBinding.qml
+PopupStyler 1.0 PopupStyler.qml
+PowerCapsule 1.0 PowerCapsule.qml
+TrayMonogram 1.0 TrayMonogram.qml
+VectorGlyph 1.0 VectorGlyph.qml
+VectorTray 1.0 VectorTray.qml

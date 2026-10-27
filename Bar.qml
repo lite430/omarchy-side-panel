@@ -127,7 +127,54 @@ Item {
         var focused = Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : "";
         return items.find(function(item) { var window = targetWindow(item); return window && window.screen.name === focused; }) || items[0] || null;
     }
-    function summonBarWidget(id) { var item = findPanelWidget(id); if (!item) return false; item.open(); return true; }
+    function revealFocusedOuterEdge() {
+        // Slide the focused monitor's dock out at its OUTER edge: the right
+        // edge of the rightmost screen, the left edge of the leftmost one.
+        var focused = Hyprland.focusedMonitor ? String(Hyprland.focusedMonitor.name) : "";
+        var side = "right";
+        var monitors = Hyprland.monitors ? Hyprland.monitors.values : [];
+        var me = null;
+        for (var m = 0; m < monitors.length; m++) {
+            var raw = monitors[m].lastIpcObject || {};
+            if (String(monitors[m].name || raw.name || "") === focused) me = Number(raw.x || 0);
+        }
+        if (me !== null) {
+            var hasRight = false, hasLeft = false;
+            for (var n = 0; n < monitors.length; n++) {
+                var rawOther = monitors[n].lastIpcObject || {};
+                var otherName = String(monitors[n].name || rawOther.name || "");
+                var otherX = Number(rawOther.x || 0);
+                if (otherName === focused) continue;
+                if (otherX > me) hasRight = true;
+                if (otherX < me) hasLeft = true;
+            }
+            if (hasRight && !hasLeft) side = "left";
+        }
+        var target = null;
+        for (var k = 0; k < root.surfaces.length; k++)
+            if (root.surfaces[k].screen && root.surfaces[k].screen.name === focused) target = root.surfaces[k];
+        if (!target && root.surfaces.length > 0) target = root.surfaces[0];
+        if (target) { target.revealAt(side); target.keyboardSummoned = true }
+    }
+    function cycleDockPanel(window, direction) {
+        // Keyboard navigation along the dock: with a panel open, move to the
+        // next (1) / previous (-1) one; with none open, start at the top for
+        // Tab and at the bottom for Shift+Tab.
+        if (activePopout) {
+            if (switchPanelFrom(activePopout, direction)) return true;
+            var slot = slotForTarget(activePopout);
+            if (slot && switchPanelFrom(slot.activeItem, direction)) return true;
+        }
+        var slots = moduleSlots.filter(function(item) {
+            var entry = item.activeItem;
+            return entry && entry.visible && typeof entry.open === "function" && typeof entry.close === "function"
+                && targetWindow(entry) === window;
+        }).sort(function(a, b) { return a.mapToItem(null, 0, 0).y - b.mapToItem(null, 0, 0).y; });
+        if (!slots.length) return false;
+        (direction > 0 ? slots[0] : slots[slots.length - 1]).activeItem.open();
+        return true;
+    }
+    function summonBarWidget(id) { var item = findPanelWidget(id); if (!item) return false; root.revealFocusedOuterEdge(); item.open(); return true; }
     function hideBarWidget(id) { var item = findPanelWidget(id); if (!item) return false; item.close(); return true; }
     function isBarWidgetOpen(id) { var item = findPanelWidget(id); return !!item && item.opened === true; }
     function panelWidgetIdAt(region, index) {
@@ -290,8 +337,20 @@ Item {
     IpcHandler { target: "omarchy.indicators"; function refresh(): void { recordingProbe.running = true; } }
     IpcHandler {
         target: "andy.side-panel"
+        function toggle(): void {
+            var open = false;
+            for (var i = 0; i < root.surfaces.length; i++)
+                if (root.surfaces[i].shown) open = true;
+            if (open) {
+                for (var j = 0; j < root.surfaces.length; j++)
+                    root.surfaces[j].revealed = false;
+                return;
+            }
+            root.revealFocusedOuterEdge();
+        }
         function status(): string {
             return JSON.stringify({id: "andy.side-panel", position: root.position, recording: root.recording,
+                popout: root.activePopoutPluginId,
                 palette: {foreground: String(root.foreground), background: String(root.background), urgent: String(root.urgent)},
                 stayAwake: root.stayAwake, doNotDisturb: root.doNotDisturb,
                 pixelated: root.options.pixelated, iconPixels: root.options.iconPixels,
